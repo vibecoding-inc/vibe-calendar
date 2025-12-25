@@ -90,8 +90,8 @@ export default function Dashboard({ initialEvents, session }: DashboardProps) {
         }
     });
 
-    const handleSchedule = (tasks: string) => {
-        scheduleMutation.mutate(tasks);
+    const handleSchedule = async (tasks: string) => {
+        await scheduleMutation.mutateAsync(tasks);
     };
 
     const handleExecute = () => {
