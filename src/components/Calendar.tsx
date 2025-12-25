@@ -28,35 +28,20 @@ export default function Calendar({ events = [] }: CalendarProps) {
             position: 'absolute' as const,
             left: '0',
             right: '0',
-            backgroundColor: 'rgba(139, 92, 246, 0.3)',
-            borderLeft: '4px solid var(--primary)',
-            padding: '4px 8px',
-            borderRadius: '4px',
-            fontSize: '0.875rem',
-            overflow: 'hidden',
         };
     };
 
     return (
-        <div className="card">
-            <h2 style={{ marginBottom: 'var(--spacing-md)', fontSize: '1.25rem' }}>Your Schedule</h2>
-            <div style={{ position: 'relative' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '60px 1fr', gap: 'var(--spacing-sm)' }}>
+        <div className="glass-card p-6">
+            <h2 className="text-xl font-semibold mb-4">Your Schedule</h2>
+            <div className="relative">
+                <div className="grid grid-cols-[60px_1fr]">
                     {hours.map((hour) => (
-                        <div key={hour} style={{ display: 'contents' }}>
-                            <div style={{
-                                color: 'var(--text-secondary)',
-                                fontSize: '0.875rem',
-                                textAlign: 'right',
-                                transform: 'translateY(-10px)'
-                            }}>
+                        <div key={hour} className="contents">
+                            <div className="text-text-secondary text-sm text-right -translate-y-2.5 pr-2">
                                 {hour}:00
                             </div>
-                            <div style={{
-                                height: '60px',
-                                borderTop: '1px solid var(--border)',
-                                position: 'relative'
-                            }}>
+                            <div className="h-[60px] border-t border-border relative">
                                 {/* Grid lines */}
                             </div>
                         </div>
@@ -64,20 +49,17 @@ export default function Calendar({ events = [] }: CalendarProps) {
                 </div>
 
                 {/* Events overlay */}
-                <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 'calc(60px + var(--spacing-sm))',
-                    right: 0,
-                    bottom: 0,
-                    pointerEvents: 'none' // Let clicks pass through to grid if needed
-                }}>
+                <div className="absolute top-0 left-[60px] right-0 bottom-0 pointer-events-none">
                     {events.map(event => (
-                        <div key={event.id} style={getEventStyle(event)} title={`${event.title} (${new Date(event.startTime).toLocaleTimeString()})`}>
-                            <div style={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{event.title}</div>
-                            <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>
-                                {new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} -
-                                {new Date(event.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <div
+                            key={event.id}
+                            style={getEventStyle(event)}
+                            title={`${event.title} (${new Date(event.startTime).toLocaleTimeString()})`}
+                            className="bg-primary/30 border-l-4 border-primary px-2 rounded text-sm overflow-hidden"
+                        >
+                            <div className="font-semibold whitespace-nowrap overflow-hidden text-ellipsis">{event.title}</div>
+                            <div className="text-xs opacity-80">
+                                {new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(event.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </div>
                         </div>
                     ))}

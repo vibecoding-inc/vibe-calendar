@@ -8,11 +8,23 @@ export interface Task {
 export interface ScheduledEvent {
     id: string;
     title: string;
+    description?: string;
     startTime: string; // ISO string
     endTime: string; // ISO string
+    calendarId?: string;
+}
+
+export type ActionType = 'create' | 'update' | 'delete';
+
+export interface CalendarAction {
+    type: ActionType;
+    event: Partial<ScheduledEvent>; // For create/update
+    eventId?: string; // For update/delete
+    calendarId?: string; // For update/delete
 }
 
 export interface ScheduleResponse {
-    events: ScheduledEvent[];
+    events?: ScheduledEvent[];
+    actions?: CalendarAction[];
     error?: string;
 }

@@ -1,50 +1,41 @@
-'use client';
+import { auth } from "@/auth";
+import { getEventsForDay } from "@/lib/calendar";
+import Dashboard from "@/components/Dashboard";
+import { ScheduledEvent } from "@/lib/types";
 
-import { useState } from 'react';
-import TaskInput from '@/components/TaskInput';
-import Calendar from '@/components/Calendar';
-import styles from './page.module.css';
-import { ScheduledEvent, ScheduleResponse } from '@/lib/types';
+export default async function Home() {
+  const session = await auth();
+  let initialEvents: ScheduledEvent[] = [];
 
-export default function Home() {
-  const [events, setEvents] = useState<ScheduledEvent[]>([]);
-
-  const handleSchedule = async (tasks: string) => {
+  if (session?.user) {
     try {
-      const response = await fetch('/api/schedule', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tasks, date: new Date().toDateString() }),
-      });
+      const now = new Date();
+      // Server-side now. In a real app, might want to respect user's timezone if known.
+      // Reset to start of day UTC or local server time
+      const startOfDay = new Date(now);
+      startOfDay.setHours(0, 0, 0, 0);
 
-      const data: ScheduleResponse = await response.json();
-      if (data.events) {
-        setEvents(data.events);
-      } else {
-        console.error(data.error);
-        alert('Error scheduling tasks: ' + (data.error || 'Unknown error'));
-      }
-    } catch (e) {
-      console.error(e);
-      alert('Network error');
+      const endOfDay = new Date(now);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      // Fetch from Google Calendar
+      const gEvents = await getEventsForDay(startOfDay.toISOString(), endOfDay.toISOString());
+
+      // Map to ScheduledEvent
+      initialEvents = gEvents.map((e: any) => ({
+        id: e.id,
+        title: e.summary || '(No Title)',
+        startTime: e.start.dateTime || e.start.date,
+        endTime: e.end.dateTime || e.end.date,
+        calendarId: e.calendarId,
+      }));
+    } catch (error) {
+      console.error("Failed to fetch initial events", error);
+      // Fallback to empty events if fetch fails (e.g. token expired, network)
     }
-  };
+  }
 
   return (
-    <main className="container">
-      <header style={{ marginBottom: 'var(--spacing-lg)' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: 600 }}>Vibe Calendar</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>AI-Powered Time Boxing</p>
-      </header>
-
-      <div className={styles.grid}>
-        <section>
-          <TaskInput onSchedule={handleSchedule} />
-        </section>
-        <section>
-          <Calendar events={events} />
-        </section>
-      </div>
-    </main>
+    <Dashboard initialEvents={initialEvents} session={session} />
   );
 }

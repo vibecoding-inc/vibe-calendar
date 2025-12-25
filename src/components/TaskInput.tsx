@@ -25,29 +25,16 @@ export default function TaskInput({ onSchedule }: TaskInputProps) {
     };
 
     return (
-        <div className="card">
-            <h2 style={{ marginBottom: 'var(--spacing-md)', fontSize: '1.25rem' }}>Tasks</h2>
+        <div className="glass-card p-6">
+            <h2 className="text-xl font-semibold mb-4">Tasks</h2>
             <textarea
                 value={tasks}
                 onChange={(e) => setTasks(e.target.value)}
                 placeholder="Enter your tasks here...&#10;- Buy milk&#10;- Finish report"
-                style={{
-                    width: '100%',
-                    height: '200px',
-                    background: 'var(--surface-highlight)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius)',
-                    padding: 'var(--spacing-md)',
-                    color: 'var(--text-primary)',
-                    fontSize: '1rem',
-                    resize: 'vertical',
-                    marginBottom: 'var(--spacing-md)',
-                    outline: 'none',
-                }}
+                className="w-full h-[200px] bg-surface-highlight border border-border rounded p-4 text-text-primary text-base resize-y mb-4 focus:outline-none focus:ring-2 focus:ring-primary/50"
             />
             <button
-                className="btn"
-                style={{ width: '100%' }}
+                className="w-full bg-primary hover:bg-primary-hover text-white py-2 rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-wait"
                 onClick={handleSchedule}
                 disabled={isScheduling}
             >

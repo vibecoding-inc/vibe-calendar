@@ -3,7 +3,7 @@ import { ScheduleResponse } from '@/lib/types';
 
 export async function POST(req: Request) {
     try {
-        const { tasks, date } = await req.json();
+        const { tasks, date, existingEvents } = await req.json();
 
         if (!tasks) {
             return NextResponse.json(
@@ -20,23 +20,32 @@ export async function POST(req: Request) {
             );
         }
 
+        const eventsContext = existingEvents
+            ? `I have the following existing events scheduled for today:\n${existingEvents.map((e: any) => `- ID: ${e.id} (Calendar: ${e.calendarId || 'primary'}): ${e.title}: ${e.startTime} to ${e.endTime}`).join('\n')}`
+            : "I have no other events scheduled for today.";
+
         const prompt = `
-      You are an expert scheduler. I have the following tasks to do today (${date || 'today'}):
+      You are an expert personal scheduler. I have the following tasks to do today (${date || 'today'}):
       ${tasks}
 
-      Please schedule them into a coherent plan, assuming an 8-hour workday starting at 9:00 AM.
-      Return the result as a JSON object with a key "events" containing an array of objects with the following structure:
+      ${eventsContext}
+
+      Please schedule my tasks into a coherent plan. 
+      You have full control to MODIFY existing events if necessary to fit the new tasks.
+      For example, you can SHORTEN an existing "Work" event to make room for "Lunch", and then create a new "Work" event afterwards.
+      
+      Return a plan JSON with a key "actions" which is an array of actions.
+      Valid actions are: 
+      - { "type": "create", "event": { "title": "...", "startTime": "...", "endTime": "..." } }
+      - { "type": "update", "eventId": "...", "calendarId": "...", "event": { "startTime": "...", "endTime": "..." } }  <-- Use this to RESCHEDULE or SHORTEN existing events. Only include fields you want to change.
+      - { "type": "delete", "eventId": "...", "calendarId": "..." }
+
+      Do not assume a strictly 9-5 workday. Fit the tasks in where they make sense.
+            
+      Return the result as a JSON object:
       {
-        "events": [
-          {
-            "id": "unique_id",
-            "title": "Task Name",
-            "startTime": "YYYY-MM-DDTHH:mm:ss",
-            "endTime": "YYYY-MM-DDTHH:mm:ss"
-          }
-        ]
+        "actions": [ ... ]
       }
-      Do not include any other text.
     `;
 
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -73,10 +82,11 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 });
         }
 
-        const events = parsed.events || parsed; // Handle both wrapped and unwrapped just in case
+        // Handle both older "events" format (if AI messes up) AND new "actions" format
+        const actions = parsed.actions;
+        const events = parsed.events;
 
-
-        return NextResponse.json({ events } as ScheduleResponse);
+        return NextResponse.json({ actions, events } as ScheduleResponse);
 
     } catch (error) {
         console.error('Scheduling error:', error);
